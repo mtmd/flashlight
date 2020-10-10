@@ -63,6 +63,9 @@ void rnn_backward(
   RNNDescriptor rnn_desc(
       input.type(), hidden_size, num_layers, mode, bidirectional, dropout);
 
+  cudnnSetRNNMatrixMathType(
+        rnn_desc.descriptor, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION);
+
   TensorDescriptorArray y_descs(
       seq_length, y.type(), {1, 1, out_size, batch_size});
 
@@ -157,6 +160,8 @@ void rnn_backward(
   }
 
   if (weights.isCalcGrad()) {
+	  cudnnSetRNNMatrixMathType(
+          rnn_desc.descriptor, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION);
     TensorDescriptorArray x_descs(
         seq_length, x.type(), {1, 1, input_size, batch_size});
     Variable dw(af::constant(0, weights.dims(), weights.type()), false);
@@ -206,6 +211,10 @@ std::tuple<Variable, Variable, Variable> rnn(
   DropoutDescriptor dropout(drop_prob);
   RNNDescriptor rnn_desc(
       input.type(), hidden_size, num_layers, mode, bidirectional, dropout);
+ 
+
+  cudnnSetRNNMatrixMathType(
+        rnn_desc.descriptor, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION);
 
   auto dims = x.dims();
 

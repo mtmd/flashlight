@@ -192,6 +192,9 @@ Variable conv2d(
   auto wtDesc = FilterDescriptor(weights);
   auto convDesc = ConvDescriptor(input.type(), px, py, sx, sy, dx, dy, groups);
 
+  cudnnSetConvolutionMathType(
+        convDesc.descriptor, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION);
+
   std::array<int, 4> odims;
   CUDNN_CHECK_ERR(cudnnGetConvolutionNdForwardOutputDim(
       convDesc.descriptor,
@@ -300,6 +303,9 @@ Variable conv2d(
     }
     auto wDesc = FilterDescriptor(wt);
     auto cDesc = ConvDescriptor(in.type(), px, py, sx, sy, dx, dy, groups);
+
+    cudnnSetConvolutionMathType(
+          cDesc.descriptor, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION);
 
     DevicePtr iPtr(in.array());
     DevicePtr wPtr(wt.array());
