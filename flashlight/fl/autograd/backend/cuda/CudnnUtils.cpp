@@ -260,6 +260,7 @@ af::array& DropoutDescriptor::getDropoutStates() {
 
 RNNDescriptor::RNNDescriptor(
     af::dtype type,
+    int input_size,
     int hidden_size,
     int num_layers,
     RnnMode mode,
@@ -277,8 +278,28 @@ RNNDescriptor::RNNDescriptor(
   cudnnRNNMode_t cell = cudnnMapToRNNMode(mode);
   cudnnRNNAlgo_t algo = CUDNN_RNN_ALGO_STANDARD;
   cudnnDataType_t cudnntype = cudnnMapToType(type);
+  cudnnRNNBiasMode_t bias_mode = CUDNN_RNN_DOUBLE_BIAS;
+  cudnnMathType_t math_mode =
+      type == f16 ? CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION : CUDNN_DEFAULT_MATH;
 
-#if CUDNN_VERSION >= 7000
+#if CUDNN_VERSION >= 8000
+  CUDNN_CHECK_ERR(cudnnSetRNNDescriptor_v8(
+      descriptor,
+      algo,
+      cell,
+      bias_mode,
+      dir,
+      in_mode,
+      cudnntype,
+      cudnntype,
+      math_mode,
+      input_size,
+      hidden_size,
+      hidden_size,
+      num_layers,
+      dropout.descriptor,
+      CUDNN_RNN_PADDED_IO_ENABLED));
+#elif CUDNN_VERSION >= 7000
   CUDNN_CHECK_ERR(cudnnSetRNNDescriptor(
       handle,
       descriptor,

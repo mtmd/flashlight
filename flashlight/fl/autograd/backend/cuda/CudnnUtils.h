@@ -88,6 +88,7 @@ class RNNDescriptor {
  public:
   RNNDescriptor(
       af::dtype type,
+      int input_size,
       int hidden_size,
       int num_layers,
       RnnMode mode,

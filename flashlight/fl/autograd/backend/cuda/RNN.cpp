@@ -56,6 +56,7 @@ void rnnBackward(
 
   auto& x = input.array();
   auto dims = x.dims();
+
   int inputSize = dims[0];
   int batchSize = dims[1];
   int seqLength = dims[2];
@@ -64,14 +65,13 @@ void rnnBackward(
 
   DropoutDescriptor dropout(dropProb);
   RNNDescriptor rnnDesc(
-      input.type(), hiddenSize, numLayers, mode, bidirectional, dropout);
-  if (input.type() == f16) {
-    CUDNN_CHECK_ERR(cudnnSetRNNMatrixMathType(
-        rnnDesc.descriptor, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION));
-  } else {
-    CUDNN_CHECK_ERR(
-        cudnnSetRNNMatrixMathType(rnnDesc.descriptor, CUDNN_DEFAULT_MATH));
-  }
+      input.type(),
+      inputSize,
+      hiddenSize,
+      numLayers,
+      mode,
+      bidirectional,
+      dropout);
 
   TensorDescriptorArray yDesc(seqLength, y.type(), {1, 1, outSize, batchSize});
 
@@ -222,22 +222,21 @@ std::tuple<Variable, Variable, Variable> rnn(
   af::array hxArray = hiddenState.array();
   af::array cxArray = cellState.array();
 
-  DropoutDescriptor dropout(dropProb);
-  RNNDescriptor rnnDesc(
-      input.type(), hiddenSize, numLayers, mode, bidirectional, dropout);
-  if (input.type() == f16) {
-    CUDNN_CHECK_ERR(cudnnSetRNNMatrixMathType(
-        rnnDesc.descriptor, CUDNN_TENSOR_OP_MATH_ALLOW_CONVERSION));
-  } else {
-    CUDNN_CHECK_ERR(
-        cudnnSetRNNMatrixMathType(rnnDesc.descriptor, CUDNN_DEFAULT_MATH));
-  }
-
   auto dims = x.dims();
 
   int inputSize = dims[0];
   int batchSize = dims[1];
   int seqLength = dims[2];
+
+  DropoutDescriptor dropout(dropProb);
+  RNNDescriptor rnnDesc(
+      input.type(),
+      inputSize,
+      hiddenSize,
+      numLayers,
+      mode,
+      bidirectional,
+      dropout);
 
   int totalLayers = numLayers * (bidirectional ? 2 : 1);
   int outSize = hiddenSize * (bidirectional ? 2 : 1);

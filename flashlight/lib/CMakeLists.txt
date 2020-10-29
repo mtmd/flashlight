@@ -52,7 +52,6 @@ set(FL_LIBRARY_CUDA_SOURCES
 # A library containing CUDA targets within libraries that may need to be linked
 # in. Only build a CUDA lib of libraries that require CUDA kernels are built
 if (FL_LIBRARIES_USE_CUDA)
-  include(${CMAKE_MODULE_PATH}/BuildCUB.cmake)
   include(${CMAKE_MODULE_PATH}/CUDAUtils.cmake)
 
   set_cuda_cxx_compile_flags()
@@ -64,7 +63,6 @@ if (FL_LIBRARIES_USE_CUDA)
   endif ()
 
   cuda_include_directories(
-    ${CUB_INCLUDE_DIRS}
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     )
 
@@ -75,7 +73,6 @@ if (FL_LIBRARIES_USE_CUDA)
     )
 
   set(INSTALLABLE_TARGETS ${INSTALLABLE_TARGETS} fl-libraries-cuda)
-  add_dependencies(fl-libraries-cuda CUB)
 
   target_link_libraries(
     fl-libraries-cuda

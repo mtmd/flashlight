@@ -2,10 +2,10 @@
 # module list
 # ------------------------------------------------------------------
 # Ubuntu           18.04
-# CUDA             10.0
-# CuDNN            7-dev
+# CUDA             11.0
+# CuDNN            8.0.4.30-dev
 # cmake            3.10         (git)
-# arrayfire        3.7.1        (git, CUDA backend)
+# arrayfire        3.7.2        (git, CUDA backend)
 # OpenMPI          latest       (apt)
 # libsndfile       4bdd741      (git)
 # MKL              2018.4.057   (apt)
@@ -16,7 +16,15 @@
 # python           3.6          (apt)
 # ==================================================================
 
-FROM nvidia/cuda:10.0-cudnn7-devel-ubuntu18.04
+FROM nvidia/cuda:11.0-devel-ubuntu18.04
+
+# CUDNN
+ENV CUDNN_VERSION 8.0.4.30
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libcudnn8=$CUDNN_VERSION-1+cuda11.0 \
+    libcudnn8-dev=$CUDNN_VERSION-1+cuda11.0
+
 
 RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
     rm -rf /var/lib/apt/lists/* \
@@ -76,11 +84,14 @@ RUN APT_INSTALL="apt-get install -y --no-install-recommends" && \
 # arrayfire https://github.com/arrayfire/arrayfire/wiki/
 # ------------------------------------------------------------------
     cd /tmp && git clone --recursive https://github.com/arrayfire/arrayfire.git && \
-    wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz && tar xf boost_1_70_0.tar.gz && \
-    cd arrayfire && git checkout v3.7.1  && git submodule update --init --recursive && \
-    mkdir build && cd build && \
-    CXXFLAGS=-DOS_LNX cmake .. -DCMAKE_BUILD_TYPE=Release -DAF_BUILD_CPU=OFF -DAF_BUILD_OPENCL=OFF -DAF_BUILD_EXAMPLES=OFF -DBOOST_INCLUDEDIR=/tmp/boost_1_70_0 && \ 
-    make -j$(nproc) && make install && \
+    wget https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz && \
+    tar xf boost_1_70_0.tar.gz && cd arrayfire && git checkout v3.8.rc  && \
+    git submodule update --init --recursive && mkdir build && cd build && \
+    CXXFLAGS=-DOS_LNX cmake .. -DCMAKE_BUILD_TYPE=Release -DAF_BUILD_CPU=OFF \
+    -DAF_BUILD_OPENCL=OFF -DAF_BUILD_EXAMPLES=OFF \
+    -DBOOST_INCLUDEDIR=/tmp/boost_1_70_0 \
+    -DCUDA_architecture_build_targets="6.0;6.1;7.0;7.5;8.0" && \
+    make -j$(nproc) install && \
 # ==================================================================
 # python (for bindings)
 # ------------------------------------------------------------------
